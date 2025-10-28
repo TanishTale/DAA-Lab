@@ -1,0 +1,42 @@
+#include<stdio.h>
+int solutionCount = 0;
+int isSafe(int board[],int row, int col, int n){
+	for (int i = 0; i< row;i++){
+		if(board[i] == col || board[i]-i == col-row || board[i] + i == col + row){
+			return 0;
+		}
+	}
+	return 1;
+}
+void solveNQueens(int board[], int row, int n){
+	if (row == n){
+		solutionCount++;
+		return;
+	}
+	for(int col = 0; col<n; col++){
+		if(isSafe(board,row,col,n)){
+			board[row] = col;
+			solveNQueens(board, row+1,n);
+			board[row] = -1;
+		}
+	}
+}
+int nQueen(int n){
+	if(n < 2){
+		return 0;
+	}
+	int board[n];
+	for (int i = 0; i<n; i++){
+		board[i] = -1;
+	}
+	solutionCount = 0;
+	solveNQueens(board,0,n);
+
+	return solutionCount;
+}
+int main(){
+	int n;
+	scanf("%d",&n);
+	printf("%d\n",nQueen(n));
+	return 0;
+}
