@@ -1,0 +1,104 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+struct Edge {
+    int u, v, w;
+};
+
+int find(int parent[], int i) {
+    if (parent[i] != i)
+        parent[i] = find(parent, parent[i]); // Path compression
+    return parent[i];
+}
+
+void union1(int parent[], int rank[], int i, int j) {
+    int ri = find(parent, i);
+    int rj = find(parent, j);
+
+    if (rank[ri] < rank[rj]) {
+        parent[ri] = rj;
+    } else if (rank[ri] > rank[rj]) {
+        parent[rj] = ri;
+    } else {
+        parent[rj] = ri;
+        rank[ri]++;
+    }
+}
+
+void kruskalMST(int **cost, int V) {
+    struct Edge edges[V * V];
+    int eCount = 0;
+
+    // Collect edges from adjacency matrix
+    for (int i = 0; i < V; i++) {
+        for (int j = i + 1; j < V; j++) { // avoid duplicates
+            if (cost[i][j] != 9999) {
+                edges[eCount].u = i;
+                edges[eCount].v = j;
+                edges[eCount].w = cost[i][j];
+                eCount++;
+            }
+        }
+    }
+
+    // Sort edges by weight (simple bubble sort)
+    for (int i = 0; i < eCount - 1; i++) {
+        for (int j = 0; j < eCount - i - 1; j++) {
+            if (edges[j].w > edges[j + 1].w) {
+                struct Edge temp = edges[j];
+                edges[j] = edges[j + 1];
+                edges[j + 1] = temp;
+            }
+        }
+    }
+
+    // Initialize parent and rank
+    int parent[V], rank[V];
+    for (int i = 0; i < V; i++) {
+        parent[i] = i;
+        rank[i] = 0;
+    }
+
+    int edgeCount = 0, totalCost = 0;
+
+    // Process edges in sorted order
+    for (int i = 0; i < eCount && edgeCount < V - 1; i++) {
+        int u = edges[i].u;
+        int v = edges[i].v;
+        int w = edges[i].w;
+
+        int pu = find(parent, u);
+        int pv = find(parent, v);
+
+        if (pu != pv) { // no cycle
+            printf("Edge %d:(%d, %d) cost:%d\n", edgeCount, u, v, w);
+            totalCost += w;
+            edgeCount++;
+            union1(parent, rank, pu, pv);
+        }
+    }
+
+    printf("Minimum cost= %d\n", totalCost);
+}
+int main() {
+    int V;
+    printf("No of vertices: ");
+    scanf("%d", &V);
+
+    int **cost = (int **)malloc(V * sizeof(int *));
+    for (int i = 0; i < V; i++)
+        cost[i] = (int *)malloc(V * sizeof(int));
+
+    printf("Adjacency matrix:\n");
+    for (int i = 0; i < V; i++)
+        for (int j = 0; j < V; j++)
+            scanf("%d", &cost[i][j]);
+
+    kruskalMST(cost, V);
+
+    for (int i = 0; i < V; i++)
+        free(cost[i]);
+    free(cost);
+
+    return 0;
+}
